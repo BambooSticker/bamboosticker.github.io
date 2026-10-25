@@ -1,0 +1,12 @@
+# Coauthor names in _bibliography/papers.bib are linked to these pages.
+"mitrai":
+  - firstname: ["Ilias", "I."]
+    url: https://sites.google.com/view/mitrai/home
+
+"daoutidis":
+  - firstname: ["Prodromos", "P."]
+    url: https://cse.umn.edu/cems/prodromos-daoutidis
+
+"zhang":
+  - firstname: ["Yiling", "Y."]
+    url: https://sites.google.com/view/yilingzhang

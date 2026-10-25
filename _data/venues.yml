@@ -1,0 +1,22 @@
+"CDC":
+  url: https://cdc2026.ieeecss.org/
+  color: "#00629b"
+
+"IFAC":
+  url: https://www.ifac-control.org/
+  color: "#1f4e79"
+
+"AIChE J.":
+  url: https://aiche.onlinelibrary.wiley.com/journal/15475905
+  color: "#c8102e"
+
+"ORL":
+  url: https://www.sciencedirect.com/journal/operations-research-letters
+  color: "#6a3d9a"
+
+"C&ChE":
+  url: https://www.sciencedirect.com/journal/computers-and-chemical-engineering
+  color: "#e87722"
+
+"ICAACE":
+  color: "#4d7c0f"

@@ -1,0 +1,89 @@
+---
+# Only the main Sass file needs front matter (the dashes are enough)
+---
+@charset "utf-8";
+
+/* Built-in Sass modules you’ll likely use across partials */
+@use "sass:math";
+@use "sass:string";
+
+/* Configure your design tokens BEFORE loading any of your partials.
+   Make sure `_sass/_variables.scss` declares `$max-content-width: 72rem !default;` */
+@use "variables" with (
+  $max-content-width: {{ site.max_width | default:  "930px" }}
+);
+
+/* Your project partials — convert these files to `@use "variables";`
+   (or `@use "variables" as *;`) inside each file and qualify variables if needed. */
+@use "themes";
+@use "layout";
+
+// Core styles organized by usage
+@use "typography";
+@use "navbar";
+@use "footer";
+@use "blog";
+@use "publications";
+@use "components";
+@use "utilities";
+
+// Other specialized styles
+@use "tabs";
+@use "teachings";
+@use "typograms";
+
+/* -----------------------------------------------------------------------------
+ * Site override: cerulean theme color (gem default is purple in light mode,
+ * cyan in dark mode). These redefine the gem's CSS tokens from _themes.scss.
+ * --------------------------------------------------------------------------- */
+:root {
+  --global-theme-color: #007ba7;
+  --global-hover-color: #007ba7;
+  --global-code-bg-color: rgba(0, 123, 167, 0.05);
+}
+
+html[data-theme="dark"] {
+  --global-theme-color: #4fb3df;
+  --global-hover-color: #4fb3df;
+}
+
+/* Site override: smaller profile photo and contact icons on the about page. */
+@media (min-width: 576px) {
+  .profile {
+    width: 200px;
+  }
+}
+
+.profile .more-info {
+  font-size: 0.85rem;
+}
+
+.social .contact-icons {
+  font-size: 2rem;
+
+  a {
+    margin: 0 0.25rem;
+
+    img {
+      width: 1.8rem;
+      height: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
+
+    svg {
+      width: 1.8rem;
+      height: 2rem;
+      margin-bottom: 0.25rem;
+    }
+  }
+}
+
+/* Site override: compact cards on the model gallery page. */
+.projects .card .card-title {
+  font-size: 1.15rem;
+  line-height: 1.35;
+}
+
+.projects .card .card-text {
+  font-size: 0.9rem;
+}
