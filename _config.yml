@@ -6,8 +6,7 @@ title: Zhe Li # the website title (if blank, full name will be used instead)
 first_name: Zhe
 middle_name:
 last_name: Li
-contact_note: >
-  Email is the best way to reach me.
+contact_note:
 description: > # the ">" symbol means to ignore newlines until "footer_text:"
   Zhe Li — Ph.D. student in Chemical and Biological Engineering at Princeton University. Research notes on optimization, machine learning, and control.
 footer_text: >
