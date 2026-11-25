@@ -1,0 +1,347 @@
+---
+layout: null
+title: How the planning horizon changes optimal control
+description: A step-by-step calculus of variations tutorial for scalar LQR, with interactive plots of how the planning horizon shapes the optimal policy.
+img: assets/img/gallery/planning-horizon.svg
+importance: 0
+permalink: /gallery/planning-horizon/
+---
+{% raw %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planning Horizon in Optimal Control · Zhe Li</title>
+<meta name="description" content="A step-by-step calculus of variations tutorial for scalar LQR, with interactive plots of how the planning horizon shapes the optimal policy.">
+{% endraw %}<link rel="canonical" href="{{ page.url | absolute_url }}">
+<link rel="icon" href="{{ 'assets/img/favicon-squirtle.png' | relative_url }}">{% raw %}
+<script>try{const t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Slab:wght@400;600&display=swap" rel="stylesheet">
+<script>
+window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'},options:{skipHtmlTags:['script','noscript','style','textarea','svg']}};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+<style>
+/* VOICE  everyday teaching: a lecture handout that walks a student through one derivation
+   IDEA   a worked example in a course note: problem, numbered steps, boxed result, then the figure
+   PICTURE one row of four small linked plots driven by T and the problem data a, b, q, r, shown once the solution is in hand
+   COLOUR white / near-black night; cerulean #007ba7 from the author's site for the finite horizon, grey dashed infinite horizon
+   TYPE   Roboto Slab titles + Roboto text, matching the al-folio site
+   LAYOUT one 760px reading column for the derivation; the figure band breaks out to 1240px. Plots 4 across, 2 across under 1000px, 1 under 520px */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#1c1c1d);--ink:light-dark(#1b1d20,#e7e6e3);--mute:light-dark(#5d636b,#a3a7ad);--rule:light-dark(#dde1e5,#38393c);--panel:light-dark(#f4f7f9,#242527);--acc:light-dark(#007ba7,#4fb3df);--inf:light-dark(#7b828a,#9aa0a7);--past:light-dark(#eef1f3,#232426);--tint:light-dark(#e6f2f7,#17313d)}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16.5px/1.62 Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:clip}
+.band{padding-block:clamp(24px,4vw,48px);padding-left:max(5vw,16px);padding-right:max(5vw,16px)}
+.read{max-width:760px;margin:0 auto}
+.wide{max-width:1240px;margin:0 auto}
+h1,h2,h3{font-family:"Roboto Slab",Georgia,serif;font-weight:600;letter-spacing:-.015em;line-height:1.12;text-wrap:balance}
+h1{font-size:clamp(32px,4.6vw,46px);margin:0 0 12px}
+h2{font-size:clamp(24px,3vw,30px);margin:34px 0 12px}
+h3{font-size:18.5px;margin:30px 0 8px;display:flex;gap:12px;align-items:baseline}
+h3 .n{font:500 14px Roboto,sans-serif;color:var(--bg);background:var(--acc);border-radius:50%;width:26px;height:26px;display:inline-grid;place-items:center;flex:none;transform:translateY(-2px)}
+p{margin:0 0 14px}
+.back{margin:0 0 20px;font-size:15px}
+.back a{color:var(--acc);text-decoration:none}
+.back a:hover{text-decoration:underline}
+.dek{font-size:18.5px;color:var(--mute);margin-bottom:8px}
+.why{color:var(--mute)}
+.prob{border-block:2px solid var(--ink);padding:6px 0;margin:10px 0 16px}
+mjx-container[display="true"]{position:relative;overflow-x:auto;overflow-y:hidden;max-width:100%;padding:2px 0}
+.box{border:1px solid var(--rule);border-left:3px solid var(--acc);border-radius:0 8px 8px 0;padding:12px 16px;margin:16px 0;background:var(--panel)}
+.box p:last-child{margin:0}
+.result{background:var(--tint)}
+ul{padding-left:22px}
+li{margin-bottom:6px}
+.lab{background:var(--panel);border-block:1px solid var(--rule)}
+.lab h2{margin-top:0}
+.ctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;margin:4px 0 10px}
+.ctl label{font-weight:500;white-space:nowrap}
+.ctl input{flex:1 1 260px;max-width:520px;height:32px;accent-color:var(--acc);cursor:pointer}
+.ctl output{font:500 22px Roboto,sans-serif;font-variant-numeric:tabular-nums;color:var(--acc);min-width:3.2em}
+.pars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px 22px;margin:0 0 16px}
+.pars label{display:flex;justify-content:space-between;gap:8px;font-size:14.5px;font-weight:500}
+.pars output{font-variant-numeric:tabular-nums;color:var(--acc);white-space:nowrap}
+.pars input,.term input[type=range]{width:100%;height:30px;margin:2px 0 0;accent-color:var(--acc);cursor:pointer}
+.term{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px 22px;align-items:center;margin:0 0 16px;max-width:900px}
+.term .sl label{display:flex;justify-content:space-between;gap:8px;font-size:14.5px;font-weight:500}
+.term output{font-variant-numeric:tabular-nums;color:var(--acc);white-space:nowrap}
+.term input:disabled{opacity:.35;cursor:not-allowed}
+.tog{display:flex;align-items:center;gap:10px;min-height:44px;font-size:14.5px;font-weight:500;cursor:pointer}
+.tog input{width:20px;height:20px;accent-color:var(--acc);margin:0;flex:none}
+button{font:500 14.5px Roboto,system-ui,sans-serif;min-height:44px;padding:0 16px;border-radius:6px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);cursor:pointer;white-space:nowrap}
+button:hover:not(:disabled){border-color:var(--acc)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:14px;color:var(--mute);margin-left:auto}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:24px;height:0;border-top:3px solid var(--acc);display:inline-block}
+.sw.i{border-top:2.5px dashed var(--inf)}
+.sw.p{width:14px;height:12px;border:0;background:var(--past);outline:1px solid var(--rule)}
+.plots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.card{background:var(--bg);border:1px solid var(--rule);border-radius:8px;padding:10px 10px 6px}
+.card h4{margin:0 0 2px;font:500 15px Roboto,sans-serif}
+.fig{position:relative;height:190px}
+.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+.nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:10px 24px;margin-top:16px;font-size:14px;color:var(--mute)}
+.nums b{display:block;font-size:22px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+svg text{font:12.5px Roboto,system-ui,sans-serif;fill:var(--mute);paint-order:stroke;stroke:var(--bg);stroke-width:4px}
+svg .grid{stroke:var(--rule);stroke-width:1}
+svg .zero{stroke:var(--mute);stroke-width:1}
+svg .past{fill:var(--past)}
+svg .tm{stroke:var(--ink);stroke-width:1.2;stroke-dasharray:2 3}
+svg .tml{fill:var(--ink);font-weight:500}
+svg .fin{stroke:var(--acc);stroke-width:2.4;fill:none}
+svg .inf{stroke:var(--inf);stroke-width:1.8;stroke-dasharray:5 4;fill:none}
+svg .dot{fill:var(--acc);stroke:var(--bg);stroke-width:1.5}
+.obs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.obs h4{margin:0 0 4px;font:500 16px Roboto,sans-serif}
+.obs p{font-size:15.5px}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:500;color:var(--acc)}
+footer{color:var(--mute);font-size:14px;border-top:1px solid var(--rule)}
+@media(max-width:1000px){.plots{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.term{grid-template-columns:minmax(0,1fr)}.obs{grid-template-columns:minmax(0,1fr)}.legend{margin-left:0}.pars{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.plots{grid-template-columns:minmax(0,1fr)}.fig{height:180px}}
+</style>
+</head>
+<body>
+
+<header class="band" style="padding-bottom:0">
+ <div class="read">
+  <p class="back"><a href="{% endraw %}{{ '/gallery/' | relative_url }}{% raw %}">← Model gallery</a></p>
+  <h1>How the planning horizon changes optimal control</h1>
+  <p class="dek">A worked tutorial: solve a scalar linear-quadratic control problem with the calculus of variations, step by step, then see how the solution changes with the horizon \(T\).</p>
+ </div>
+</header>
+
+<main class="band" style="padding-top:8px">
+ <div class="read">
+  <h2>The problem</h2>
+  <div class="prob">
+   \[ \min_{u(\cdot)}\; J=\frac12\int_0^T\big(q\,x(t)^2+r\,u(t)^2\big)\,dt \quad\text{s.t.}\quad \dot x=a\,x+b\,u,\quad x(0)=x_0,\quad x(T)\ \text{free}. \]
+  </div>
+  <p>The state \(x\) is the distance from a target at 0, and the control \(u\) is how hard we push toward it. Left alone, the state grows if \(a\gt0\), decays if \(a\lt0\) and stays put if \(a=0\); \(b\neq0\) sets how strongly the control acts. The weight \(q\gt0\) charges for being away from the target and \(r\gt0\) charges for effort. The two terms pull in opposite directions, and the optimum balances them over the horizon \([0,T]\).</p>
+  <p>Two details shape everything below: the final state \(x(T)\) is <strong>free</strong>, and the cost has <strong>no terminal term</strong>. Nothing after \(T\) enters the problem.</p>
+
+  <h2>Solving it with the calculus of variations</h2>
+  <p>The plan: rewrite the problem as a minimization over paths \(x(\cdot)\), require the first variation to vanish, and read off a differential equation with boundary conditions. Then solve it.</p>
+
+  <h3><span class="n">1</span>Eliminate the control</h3>
+  <p class="why">The dynamics are a constraint linking \(u\) and \(x\), not a control law. Because \(b\neq0\), they can be solved for \(u\), so each path \(x(\cdot)\) fixes its control and we can optimize over paths directly.</p>
+  <p>From \(\dot x=ax+bu\), the control along a path is \(u=(\dot x-ax)/b\). Substituting into the cost gives</p>
+  \[ J[x]=\int_0^T L(x,\dot x)\,dt,\qquad L(x,\dot x)=\frac12\Big(q\,x^2+\frac{r}{b^2}\big(\dot x-a x\big)^2\Big). \]
+  <p>\(J\) is a <em>functional</em>: it maps a whole function \(x(\cdot)\) to a number. We look for the \(x(\cdot)\) with \(x(0)=x_0\) that makes it smallest.</p>
+
+  <h3><span class="n">2</span>Perturb the path</h3>
+  <p class="why">At a minimizer, any small admissible change of the path must leave the cost unchanged to first order, just as \(f'(x^*)=0\) for an ordinary function.</p>
+  <p>Take a candidate \(x\) and a perturbation \(\eta(t)\). Because \(x(0)=x_0\) is fixed, we need \(\eta(0)=0\); because \(x(T)\) is free, \(\eta(T)\) is unrestricted. Define \(\phi(\varepsilon)=J[x+\varepsilon\eta]\). The first variation is</p>
+  \[ \delta J=\phi'(0)=\int_0^T\Big(\frac{\partial L}{\partial x}\,\eta+\frac{\partial L}{\partial \dot x}\,\dot\eta\Big)dt. \]
+  <p>For our \(L\), writing \(u=(\dot x-ax)/b\) to keep the expressions short,</p>
+  \[ \frac{\partial L}{\partial x}=q\,x-\frac{ra}{b^2}\big(\dot x-ax\big)=q\,x-\frac{ra}{b}\,u,\qquad \frac{\partial L}{\partial \dot x}=\frac{r}{b^2}\big(\dot x-ax\big)=\frac{r}{b}\,u. \]
+
+  <h3><span class="n">3</span>Integrate by parts</h3>
+  <p class="why">The term with \(\dot\eta\) is awkward because \(\eta\) and \(\dot\eta\) are not independent. Moving the derivative off \(\eta\) leaves everything multiplied by \(\eta\) itself.</p>
+  \[ \delta J=\Big[\frac{\partial L}{\partial \dot x}\,\eta\Big]_0^T+\int_0^T\Big(\frac{\partial L}{\partial x}-\frac{d}{dt}\frac{\partial L}{\partial \dot x}\Big)\eta\,dt. \]
+
+  <h3><span class="n">4</span>Set the first variation to zero</h3>
+  <p class="why">\(\delta J=0\) must hold for every admissible \(\eta\). Choosing \(\eta\) cleverly splits this into an equation in the interior and conditions at the ends.</p>
+  <p><strong>Interior.</strong> First take perturbations with \(\eta(0)=\eta(T)=0\). The boundary term vanishes, and by the fundamental lemma of the calculus of variations the integrand must vanish. This is the Euler–Lagrange equation:</p>
+  \[ q\,x-\frac{ra}{b^2}\big(\dot x-ax\big)-\frac{r}{b^2}\big(\ddot x-a\dot x\big)=0. \]
+  <p>Multiply by \(b^2/r\). The two \(a\dot x\) terms cancel, leaving</p>
+  \[ \ddot x=\omega^2x,\qquad \omega=\sqrt{a^2+\frac{q\,b^2}{r}}. \]
+  <p><strong>Start.</strong> \(\eta(0)=0\), so the boundary term at \(t=0\) is always zero. The condition there is \(x(0)=x_0\).</p>
+  <p><strong>End.</strong> What remains is \(\frac{\partial L}{\partial\dot x}(T)\,\eta(T)=\frac{r}{b}\,u(T)\,\eta(T)=0\). Since \(\eta(T)\) can be anything, we need \(u(T)=0\), which in terms of the state reads \(\dot x(T)=a\,x(T)\).</p>
+  <div class="box"><p>This end condition is a <strong>natural</strong> (or <strong>transversality</strong>) boundary condition. It fixes the final control, \(u(T)=0\), and leaves the final state free. In the final instant, effort buys nothing, because no time is left for it to reduce the state cost. A fixed endpoint \(x(T)=0\) would force \(\eta(T)=0\), and this condition would be replaced by \(x(T)=0\).</p></div>
+  <p>Together, we have a two-point boundary-value problem:</p>
+  \[ \ddot x=\omega^2x,\qquad x(0)=x_0,\qquad \dot x(T)=a\,x(T). \]
+
+  <h3><span class="n">5</span>Solve the boundary-value problem</h3>
+  <p class="why">Writing the general solution in terms of the time-to-go \(\tau=T-t\) makes the end condition easy to apply.</p>
+  <p>The general solution is \(x=A\cosh\omega\tau+B\sinh\omega\tau\), so \(\dot x=-A\omega\sinh\omega\tau-B\omega\cosh\omega\tau\). At \(t=T\) (\(\tau=0\)) the end condition reads \(-B\omega=aA\), so \(B=-aA/\omega\). Define</p>
+  \[ D(\tau)=\cosh\omega\tau-\frac{a}{\omega}\sinh\omega\tau, \]
+  <p>which is positive because \(|a|\lt\omega\). Then \(x(0)=A\,D(T)=x_0\), and \(u=(\dot x-ax)/b\) simplifies using \(\omega^2-a^2=qb^2/r\):</p>
+  <div class="box result">
+   \[ x^*(t)=x_0\,\frac{D(T-t)}{D(T)},\qquad u^*(t)=-x_0\,\frac{q\,b}{r\,\omega}\,\frac{\sinh\omega(T-t)}{D(T)}. \]
+  </div>
+  <p>With \(a=0\) and \(b=q=r=1\), this reduces to \(x^*=x_0\cosh(T-t)/\cosh T\) and \(u^*=-x_0\sinh(T-t)/\cosh T\).</p>
+
+  <h3><span class="n">6</span>Confirm it is a minimum and compute the cost</h3>
+  <p class="why">\(\delta J=0\) identifies stationary paths. Convexity makes a stationary path globally optimal.</p>
+  <p>\(L\) is a sum of squares of linear functions of \((x,\dot x)\), so it is convex, and any stationary path is a global minimizer. Because \(J\) is quadratic, every admissible perturbation \(\eta\) gives</p>
+  \[ J[x^*+\eta]=J[x^*]+\underbrace{\delta J}_{=\,0}+\frac12\int_0^T\Big(q\,\eta^2+\frac{r}{b^2}\big(\dot\eta-a\eta\big)^2\Big)dt\;\ge\;J[x^*]. \]
+  <p>For the optimal cost, use that \(L\) is quadratic in \((x,\dot x)\), so \(x\,\partial_xL+\dot x\,\partial_{\dot x}L=2L\). Integrating the second term by parts and using the Euler–Lagrange equation and \(u^*(T)=0\):</p>
+  \[ J^*=\frac12\Big[x\,\frac{\partial L}{\partial\dot x}\Big]_0^T=-\frac{r}{2b}\,x_0\,u^*(0)=\frac12\,\frac{q\tanh\omega T}{\omega-a\tanh\omega T}\,x_0^2. \]
+
+  <h3><span class="n">7</span>Read off a feedback law</h3>
+  <p class="why">The solution was computed for one particular \(x_0\). Dividing \(u^*\) by \(x^*\) removes \(x_0\) and leaves a rule that depends only on time.</p>
+  \[ u^*=-\frac{b}{r}\,P(t)\,x,\qquad P(t)=\frac{q\tanh\omega(T-t)}{\omega-a\tanh\omega(T-t)}. \]
+  <p>So the optimal control is linear state feedback with a gain that depends on the <em>time-to-go</em> \(T-t\). \(P\) rises with time-to-go toward \(P_\infty=r(a+\omega)/b^2\), falls to \(P(T)=0\) at the end, which is the natural boundary condition from step 4 in feedback form, and gives the optimal cost \(J^*=\tfrac12P(0)\,x_0^2\).</p>
+  <p>As \(T\to\infty\), the gain is constant, \(u=-\tfrac{a+\omega}{b}\,x\), and the closed loop is \(\dot x=-\omega x\). The infinite-horizon controller makes the state decay at rate \(\omega\) whatever \(a\) is, including an unstable plant with \(a\gt0\).</p>
+  <div class="box"><p><strong>Connection to the Riccati equation.</strong> The same gain comes out of dynamic programming. With the value function \(V(t,x)=\tfrac12P(t)x^2\), the Hamilton–Jacobi–Bellman equation reduces to \(-\dot P=q+2aP-\tfrac{b^2}{r}P^2\) with \(P(T)=0\), whose solution is the \(P(t)\) above; its stationary version \(0=q+2aP-\tfrac{b^2}{r}P^2\) gives \(P_\infty\). The calculus of variations gives the best path from one initial state; the Riccati equation gives the best rule from every state, and for this problem the two coincide.</p></div>
+
+  <h2>With a terminal cost</h2>
+  <p>Adding a terminal cost \(\tfrac12 s\,x(T)^2\) with \(s\ge0\) to \(J\) leaves the Euler–Lagrange equation \(\ddot x=\omega^2x\) unchanged and modifies only the end condition, which becomes \(\tfrac{r}{b}\,u(T)+s\,x(T)=0\). The optimal policy is again linear state feedback, \(u^*=-\tfrac{b}{r}P(t)\,x\), with</p>
+  <div class="box result">
+   \[ P(t)=\frac{s\,\omega+(q+a s)\tanh\omega\tau}{\omega+\big(\tfrac{s b^2}{r}-a\big)\tanh\omega\tau},\qquad \tau=T-t. \]
+  </div>
+  <p>This \(P\) solves the same Riccati equation with \(P(T)=s\), and the optimal cost is still \(J^*=\tfrac12P(0)\,x_0^2\). As a function of time-to-go, \(P\) moves monotonically from \(s\) at the end toward \(P_\infty\):</p>
+  <ul>
+   <li>\(s=0\) recovers the gain derived above, which falls to zero at \(T\).</li>
+   <li>\(0\lt s\lt P_\infty\): the gain dips toward \(s\) at the end. \(s\gt P_\infty\): it rises toward \(s\), and the controller pushes harder late.</li>
+   <li>\(s=P_\infty\): \(P(t)\equiv P_\infty\) for every horizon. The terminal cost equals the infinite-horizon cost-to-go, so the finite-horizon controller is the infinite-horizon one.</li>
+   <li>\(s\to\infty\): the gain grows without bound as \(t\to T\) and forces \(x(T)=0\), the fixed-endpoint problem.</li>
+  </ul>
+ </div>
+</main>
+
+<section class="band lab" aria-label="Visualization of the solution">
+ <div class="wide">
+  <h2>See the solution</h2>
+  <div class="ctl">
+   <label for="sT">Horizon \(T\)</label>
+   <input type="range" id="sT" min="0.2" max="6" step="0.05" value="3">
+   <output id="oT"></output>
+   <div class="legend" aria-hidden="true">
+    <span><i class="sw"></i>Horizon \(T\)<span id="lgS" hidden>&nbsp;with terminal cost</span></span>
+    <span><i class="sw i"></i>Infinite horizon</span>
+    <span><i class="sw p"></i>After \(T\)</span>
+   </div>
+  </div>
+  <div class="pars">
+   <div><label for="sa"><span>Plant \(a\)</span><output id="oa"></output></label><input type="range" id="sa" min="-2" max="2" step="0.1" value="1"></div>
+   <div><label for="sb"><span>Input \(b\)</span><output id="ob"></output></label><input type="range" id="sb" min="0.2" max="2" step="0.1" value="1"></div>
+   <div><label for="sq"><span>State weight \(q\)</span><output id="oq"></output></label><input type="range" id="sq" min="0.1" max="5" step="0.1" value="1"></div>
+   <div><label for="sr"><span>Effort weight \(r\)</span><output id="or"></output></label><input type="range" id="sr" min="0.1" max="5" step="0.1" value="1"></div>
+  </div>
+  <div class="term">
+   <label class="tog" for="kS"><input type="checkbox" id="kS"> Terminal cost \(\tfrac12 s\,x(T)^2\)</label>
+   <div class="sl"><label for="ss"><span>Weight \(s\)</span><output id="os"></output></label><input type="range" id="ss" min="0" max="10" step="0.05" value="1" disabled></div>
+   <button type="button" id="bInf" disabled>Set \(s=P_\infty\)</button>
+  </div>
+  <div class="plots">
+   <div class="card"><h4>State \(x^*(t)\)</h4><div class="fig"><svg id="gX" role="img" aria-label="Optimal state"></svg></div></div>
+   <div class="card"><h4>Control \(u^*(t)\)</h4><div class="fig"><svg id="gU" role="img" aria-label="Optimal control"></svg></div></div>
+   <div class="card"><h4>Riccati gain \(P(t)\)</h4><div class="fig"><svg id="gP" role="img" aria-label="Riccati gain"></svg></div></div>
+   <div class="card"><h4>Policy \(u=-\tfrac{b}{r}P(t)\,x\)</h4><div class="fig"><svg id="gL" role="img" aria-label="Feedback policy lines at five times, with the optimal path"></svg></div></div>
+  </div>
+  <div class="nums">
+   <div>Rate \(\omega\)<b id="n0"></b></div>
+   <div>Initial gain \(P(0)\)<b id="n1"></b></div>
+   <div>Final state \(x^*(T)\)<b id="n2"></b></div>
+   <div>Optimal cost \(J^*\)<b id="n3"></b></div>
+  </div>
+  <p style="font-size:14px;color:var(--mute);margin:12px 0 0">Plots use \(x_0=1\); the state, control and policy scale linearly with \(x_0\), the cost with \(x_0^2\). In the policy plot, lines show \(u=-\tfrac{b}{r}P(t)x\) at \(t=0,\,T/4,\,T/2,\,3T/4,\,T\) (darker is earlier), and dots mark where the optimal path meets each one.</p>
+ </div>
+</section>
+
+<section class="band">
+ <div class="read">
+  <h2 style="margin-top:0">What the horizon changes</h2>
+ </div>
+ <div class="wide">
+  <div class="obs">
+   <div><h4>At the start</h4><p id="o1"></p></div>
+   <div><h4>Far from the end</h4><p id="o2"></p></div>
+   <div><h4>At the end</h4><p id="o3"></p></div>
+  </div>
+ </div>
+ <div class="read">
+  <h2>Takeaways</h2>
+  <ul>
+   <li>The dynamics \(\dot x=ax+bu\) are a constraint. Solving them for \(u\) turns the problem into minimizing a functional \(J[x]\) over paths.</li>
+   <li>The first variation gives the Euler–Lagrange equation \(\ddot x=\omega^2x\) in the interior and conditions at the ends: a fixed start gives \(x(0)=x_0\), a free end gives the natural condition \(u(T)=0\).</li>
+   <li>Convexity of \(L\) makes the stationary path the global minimizer.</li>
+   <li>Dividing \(u^*\) by \(x^*\) reveals a feedback law whose gain \(P(t)\) depends only on time-to-go and solves the Riccati equation.</li>
+   <li>\(\omega=\sqrt{a^2+qb^2/r}\) sets the time scale. Over long horizons the early behaviour approaches the infinite-horizon law, which gives decay rate \(\omega\), but the gain still falls to zero at \(T\) because nothing is charged after it.</li>
+   <li>A terminal cost \(\tfrac12P_\infty x(T)^2\) removes the end effect: the finite-horizon gain is then constant and equal to \(P_\infty\).</li>
+  </ul>
+ </div>
+</section>
+
+<footer class="band"><div class="read">Interactive tutorial by <a href="{% endraw %}{{ '/' | relative_url }}{% raw %}">Zhe Li</a>. All curves are the closed-form solution derived above.</div></footer>
+
+<script>
+{
+const $=id=>document.getElementById(id);
+const TMAX=6,X0=1;
+const st={T:3,a:1,b:1,q:1,r:1,term:false,s:1};
+const fm=(v,d=3)=>(Math.abs(v)<0.5*10**-d?0:v).toFixed(d).replace('-','−');
+function model(){
+ const {T,a,b,q,r}=st,w=Math.sqrt(a*a+q*b*b/r),s=st.term?st.s:0;
+ const c=(s*b*b/r-a)/w,D=v=>Math.cosh(w*v)+c*Math.sinh(w*v),DT=D(T);
+ const Pinf=r*(a+w)/(b*b),K=(a+w)/b;
+ const Pt=v=>{const h=Math.tanh(w*v);return(s*w+(q+a*s)*h)/(w+(s*b*b/r-a)*h)};
+ return{T,a,b,q,r,w,s,Pinf,K,Pt,
+  x:t=>X0*D(T-t)/DT,u:t=>-(b/r)*X0*(s*Math.cosh(w*(T-t))+((q+a*s)/w)*Math.sinh(w*(T-t)))/DT,
+  p:t=>Pt(T-t),
+  xi:t=>X0*Math.exp(-w*t),ui:t=>-K*X0*Math.exp(-w*t),pi:()=>Pinf};
+}
+function ticks(lo,hi,n){const raw=(hi-lo)/n,mag=10**Math.floor(Math.log10(raw)),e=raw/mag,step=(e<1.5?1:e<3?2:e<7?5:10)*mag,out=[];for(let v=Math.ceil(lo/step-1e-9)*step;v<=hi+1e-9;v+=step)out.push(Math.abs(v)<1e-12?0:+v.toPrecision(6));return out}
+const lab=v=>String(+v.toPrecision(3)).replace('-','−');
+function range(fs){let lo=0,hi=0;for(const[f,t1]of fs)for(let i=0;i<=100;i++){const v=f(t1*i/100);if(isFinite(v)){lo=Math.min(lo,v);hi=Math.max(hi,v)}}if(hi-lo<1e-9){lo=-1;hi=1}const pad=(hi-lo)*0.06;return[lo<0?lo-pad:0,hi>0?hi+pad:0]}
+function path(f,t1,X,Y){let d='';const n=140;for(let i=0;i<=n;i++){const t=t1*i/n;d+=(i?'L':'M')+X(t).toFixed(1)+' '+Y(f(t)).toFixed(1)}return d}
+function timePlot(id,m,fn,fi){
+ const s=$(id),W=s.clientWidth,H=s.clientHeight;if(!W||!H)return;
+ const[lo,hi]=range([[fn,m.T],[fi,TMAX]]),yt=ticks(lo,hi,3);
+ const L=Math.max(30,8+7*Math.max(...yt.map(v=>lab(v).length))),R=8,Tp=16,B=22,w=W-L-R,h=H-Tp-B;
+ const X=t=>L+t/TMAX*w,Y=v=>Tp+(hi-v)/(hi-lo)*h;
+ let o=`<defs><clipPath id="${id}c"><rect x="${L}" y="${Tp-2}" width="${w}" height="${h+4}"/></clipPath></defs>`;
+ o+=`<rect class="past" x="${X(m.T)}" y="${Tp}" width="${Math.max(0,X(TMAX)-X(m.T))}" height="${h}"/>`;
+ o+=yt.map(v=>`<line class="${v===0?'zero':'grid'}" x1="${L}" x2="${L+w}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end">${lab(v)}</text>`).join('');
+ o+=[0,2,4,6].map(v=>`<text x="${X(v)}" y="${H-5}" text-anchor="middle">${v}</text>`).join('');
+ o+=`<line class="tm" x1="${X(m.T)}" x2="${X(m.T)}" y1="${Tp-3}" y2="${Tp+h}"/><text class="tml" x="${X(m.T)}" y="${Tp-5}" text-anchor="${X(m.T)>W-20?'end':'middle'}">T</text>`;
+ o+=`<g clip-path="url(#${id}c)"><path class="inf" d="${path(fi,TMAX,X,Y)}"/><path class="fin" d="${path(fn,m.T,X,Y)}"/></g>`;
+ o+=`<circle class="dot" cx="${X(0)}" cy="${Y(fn(0))}" r="3.5"/><circle class="dot" cx="${X(m.T)}" cy="${Y(fn(m.T))}" r="3.5"/>`;
+ s.innerHTML=o;
+}
+function policyPlot(m){
+ const s=$('gL'),W=s.clientWidth,H=s.clientHeight;if(!W||!H)return;
+ const L=10,R=10,Tp=10,B=10,w=W-L-R,h=H-Tp-B;
+ let xm=0;for(let i=0;i<=100;i++)xm=Math.max(xm,Math.abs(m.x(m.T*i/100)));
+ const Rx=xm*1.15,gmax=Math.max(m.K,(m.b/m.r)*Math.max(m.p(0),m.s)),Ru=Rx*gmax*1.08||1;
+ const X=x=>L+(x+Rx)/(2*Rx)*w,Y=u=>Tp+(Ru-u)/(2*Ru)*h;
+ const line=(g,c,sty)=>`<line class="${c}" ${sty||''} x1="${X(-Rx)}" y1="${Y(g*Rx)}" x2="${X(Rx)}" y2="${Y(-g*Rx)}"/>`;
+ let o=`<defs><clipPath id="gLc"><rect x="${L}" y="${Tp}" width="${w}" height="${h}"/></clipPath></defs>`;
+ o+=`<line class="zero" x1="${L}" x2="${L+w}" y1="${Y(0)}" y2="${Y(0)}"/><line class="zero" x1="${X(0)}" x2="${X(0)}" y1="${Tp}" y2="${Tp+h}"/>`;
+ o+=`<text x="${L+w-2}" y="${Y(0)-7}" text-anchor="end">x</text><text x="${X(0)+7}" y="${Tp+12}">u</text>`;
+ o+=`<g clip-path="url(#gLc)">`+line(m.K,'inf');
+ const ts=[0,0.25,0.5,0.75,1].map(f=>f*m.T);
+ ts.forEach((t,i)=>{o+=line((m.b/m.r)*m.p(t),'fin',`style="stroke-width:1.6;opacity:${(1-i*0.19).toFixed(2)}"`)});
+ let d='';for(let i=0;i<=120;i++){const t=m.T*i/120;d+=(i?'L':'M')+X(m.x(t)).toFixed(1)+' '+Y(m.u(t)).toFixed(1)}
+ o+=`<path class="fin" d="${d}"/></g>`;
+ o+=ts.map(t=>`<circle class="dot" cx="${X(m.x(t))}" cy="${Y(m.u(t))}" r="3.5"/>`).join('');
+ s.innerHTML=o;
+}
+function render(){
+ const m=model();
+ $('oT').textContent=m.T.toFixed(2);$('oa').textContent=fm(m.a,1);$('ob').textContent=m.b.toFixed(1);$('oq').textContent=m.q.toFixed(1);$('or').textContent=m.r.toFixed(1);
+ timePlot('gX',m,m.x,m.xi);timePlot('gU',m,m.u,m.ui);timePlot('gP',m,m.p,m.pi);policyPlot(m);
+ const P0=m.p(0);let grows=false;for(let i=1;i<=50;i++)if(m.x(m.T*i/50)>X0*1.001)grows=true;
+ $('n0').textContent=fm(m.w);$('n1').textContent=fm(P0);$('n2').textContent=fm(m.x(m.T));$('n3').textContent=fm(P0/2);
+ const Pinf=m.Pinf,isInf=m.s>0&&Math.abs(m.s-Pinf)<1e-6*Math.max(1,Pinf);
+ let tau99=null;
+ if(!isInf){const f=v=>Math.abs(m.Pt(v)-Pinf)<=0.01*Pinf;if(f(1e-9))tau99=0;else{let lo=0,hi=60/m.w;if(f(hi)){for(let k=0;k<60;k++){const mid=(lo+hi)/2;if(f(mid))hi=mid;else lo=mid}tau99=hi}}}
+ const Jinf=0.5*(m.q+m.r*m.K*m.K)*(1-Math.exp(-2*m.w*m.T))/(2*m.w)+0.5*m.s*Math.exp(-2*m.w*m.T);
+ const pct=(100*P0/Pinf).toFixed(1),tau99Base=Math.atanh(0.99*m.w/(m.w-0.01*m.a))/m.w,uT=m.u(m.T);
+ $('o1').innerHTML=isInf?`With s = P<sub>∞</sub> = ${fm(Pinf)}, the gain is <span class="num">P(t) = P<sub>∞</sub></span> for the whole horizon, so the start already uses the infinite-horizon law.`:`The initial gain is <span class="num">P(0) = ${fm(P0)}</span>, which is <span class="num">${pct}%</span> of the infinite-horizon value P<sub>∞</sub> = ${fm(Pinf)}. ${P0/Pinf<0.9?'A short horizon leaves little future state cost to avoid, so the optimal push is gentle.':P0/Pinf>1.1?'The large terminal weight makes the controller push harder than the infinite-horizon law from the start.':m.s>0&&m.T<tau99Base?'The terminal cost keeps the start gain close to P<sub>∞</sub> even on this short horizon.':'This horizon is long enough that the start uses nearly the full gain; shorten T to see it change.'}${grows?' Here x(t) rises above x₀: the drift a > 0 outweighs the weak feedback.':''}`;
+ $('o2').innerHTML=isInf?`The infinite-horizon cost-to-go is ½P<sub>∞</sub>x², so this terminal cost accounts for everything after T exactly and the end effect disappears. The path is exactly e<sup>−ωt</sup>.`:tau99!==null&&m.T>tau99?`P(t) stays within 1% of P<sub>∞</sub> until <span class="num">t = T − ${tau99.toFixed(2)} = ${(m.T-tau99).toFixed(2)}</span>, so the early path is almost exactly e<sup>−ωt</sup>. The end region scales as 1/ω.`:`P(t) is within 1% of P<sub>∞</sub> only when more than <span class="num">${tau99===null?'—':tau99.toFixed(2)}</span> time units remain${m.s===0?' (2.65/ω when a = 0)':''}. At T = ${m.T.toFixed(2)} that never happens.`;
+ $('o3').innerHTML=m.s===0?`P(T) = 0 for every horizon, so P(t) converges to P<sub>∞</sub> pointwise but not uniformly: the drop to zero keeps its size and moves with T. The constant infinite-horizon law costs <span class="num">${(Jinf/(P0/2)).toFixed(4)}</span> times the optimum on [0, T].`:`P(T) = s = ${fm(m.s)}, ${Math.abs(uT)<5e-4?'but x(T) ≈ 0 at this horizon, so the end control is negligible. ':`so the controller ends with <span class="num">u(T) = ${fm(uT)}</span> instead of 0. `}${isInf?'The infinite-horizon law is optimal here.':`The constant infinite-horizon law costs <span class="num">${(Jinf/(P0/2)).toFixed(4)}</span> times the optimum, terminal cost included.`}`;
+}
+function syncS(){const Pinf=st.r*(st.a+Math.sqrt(st.a*st.a+st.q*st.b*st.b/st.r))/(st.b*st.b);const sl=$('ss');sl.max=Math.max(10,Math.ceil(Pinf*2));sl.value=st.s;sl.disabled=!st.term;$('bInf').disabled=!st.term;$('lgS').hidden=!st.term;$('os').textContent=st.s.toFixed(2)}
+for(const k of ['T','a','b','q','r'])$('s'+k).addEventListener('input',e=>{st[k]=+e.target.value;syncS();render()});
+$('ss').addEventListener('input',e=>{st.s=+e.target.value;syncS();render()});
+$('kS').addEventListener('change',e=>{st.term=e.target.checked;syncS();render()});
+$('bInf').addEventListener('click',()=>{st.s=st.r*(st.a+Math.sqrt(st.a*st.a+st.q*st.b*st.b/st.r))/(st.b*st.b);syncS();render()});
+syncS();
+let raf=0;
+const ro=new ResizeObserver(()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(render)});
+for(const id of ['gX','gU','gP','gL'])ro.observe($(id));
+render();
+}
+</script>
+</body>
+</html>{% endraw %}

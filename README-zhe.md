@@ -59,6 +59,12 @@ The notebook copies are separate from the [Model-Gallery repo](https://github.co
 - `benders_mpc.ipynb`: `\R` was replaced with `\mathbb{R}`.
 - `dual_partition_2slp.ipynb`: `bmatrix*` was replaced with `bmatrix`.
 
+## Interactive optimal-control explainer
+
+The planning-horizon tutorial is at `/gallery/planning-horizon/`, with a card in the model gallery. It is one self-contained page, `_models/planning-horizon.html` (`layout: null`), with its styles, script and plots inline; the card image is `assets/img/gallery/planning-horizon.svg`. The page body sits inside a Liquid raw block, so Jekyll leaves its MathJax and JavaScript untouched; the only Liquid in it is the canonical URL, the favicon, the gallery back link and the footer home link. MathJax loads from jsDelivr, and the page follows the site's light/dark setting.
+
+To update the page, replace everything between the raw tags with the new HTML and keep the front matter and those four Liquid links.
+
 ## Add a paper
 
 Add a BibTeX entry to `_bibliography/papers.bib`. The extra fields shown on the site are:
